@@ -1,6 +1,9 @@
 import tkinter as tk
 from tkinter import filedialog
 from PIL import Image, ImageTk
+import cv2
+import mediapipe as mp
+import numpy as np
 
 class ImageUploader(tk.Tk):
     def __init__(self):
@@ -34,6 +37,8 @@ class ImageUploader(tk.Tk):
         self.zoom_out_button.pack(side=tk.LEFT, padx=5)
         self.grayscale_button = tk.Button(self.controls_frame, text="Grayscale", command=self.convert_to_grayscale)
         self.grayscale_button.pack(side=tk.LEFT, padx=5)
+        self.detect_hands_button = tk.Button(self.controls_frame, text="Detect Hands", command=self.detect_hands)
+        self.detect_hands_button.pack(side=tk.LEFT, padx=5)
 
         self.reset_button.pack_forget() # Hide reset button initially
         self.controls_frame.pack_forget() # Hide controls frame initially
@@ -43,6 +48,12 @@ class ImageUploader(tk.Tk):
         self.is_grayscale = False
         self.current_zoom = 1.0
         self.photo = None # To prevent garbage collection
+        self.hand_landmarks = None
+
+        # Initialize MediaPipe Hands
+        self.mp_hands = mp.solutions.hands
+        self.hands = self.mp_hands.Hands(static_image_mode=True, max_num_hands=2, min_detection_confidence=0.5)
+        self.mp_drawing = mp.solutions.drawing_utils
 
     def upload_image(self):
         file_path = filedialog.askopenfilename(filetypes=[("Image Files", "*.jpg *.jpeg *.png *.gif")])
@@ -67,6 +78,7 @@ class ImageUploader(tk.Tk):
         self.original_image = None
         self.is_grayscale = False
         self.current_zoom = 1.0
+        self.hand_landmarks = None
 
         # Hide canvas, reset, and control buttons and show upload button
         self.canvas_frame.pack_forget()
@@ -78,6 +90,17 @@ class ImageUploader(tk.Tk):
         self.is_grayscale = not self.is_grayscale
         self.update_image_display()
 
+    def detect_hands(self):
+        if self.original_image:
+            # Convert PIL image to OpenCV format
+            open_cv_image = cv2.cvtColor(np.array(self.original_image), cv2.COLOR_RGB2BGR)
+
+            # Process the image and find hands
+            results = self.hands.process(cv2.cvtColor(open_cv_image, cv2.COLOR_BGR2RGB))
+
+            self.hand_landmarks = results.multi_hand_landmarks
+            self.update_image_display()
+
     def zoom_in(self):
         self.current_zoom *= 1.2
         self.update_image_display()
@@ -88,16 +111,33 @@ class ImageUploader(tk.Tk):
 
     def update_image_display(self):
         if self.original_image:
-            width, height = self.original_image.size
-            new_size = (int(width * self.current_zoom), int(height * self.current_zoom))
+            image_to_display = self.original_image.copy()
 
-            image_to_display = self.original_image
             if self.is_grayscale:
                 image_to_display = image_to_display.convert('L')
 
+            if self.hand_landmarks:
+                # Convert PIL image to OpenCV format for drawing
+                image_np = np.array(image_to_display)
+                if image_np.ndim == 2:  # Grayscale image
+                    annotated_image_np = cv2.cvtColor(image_np, cv2.COLOR_GRAY2BGR)
+                else:  # Color image
+                    annotated_image_np = cv2.cvtColor(image_np, cv2.COLOR_RGB2BGR)
+
+                for hand_landmarks in self.hand_landmarks:
+                    self.mp_drawing.draw_landmarks(
+                        annotated_image_np,
+                        hand_landmarks,
+                        self.mp_hands.HAND_CONNECTIONS)
+
+                # Convert back to PIL Image
+                image_to_display = Image.fromarray(cv2.cvtColor(annotated_image_np, cv2.COLOR_BGR2RGB))
+
+            width, height = image_to_display.size
+            new_size = (int(width * self.current_zoom), int(height * self.current_zoom))
             resized_image = image_to_display.resize(new_size, Image.Resampling.LANCZOS)
 
-            self.photo = ImageTk.PhotoImage(resized_image) # Keep a reference
+            self.photo = ImageTk.PhotoImage(resized_image)  # Keep a reference
             if self.canvas_image:
                 self.canvas.delete(self.canvas_image)
 
