@@ -39,6 +39,8 @@ class ImageUploader(tk.Tk):
         self.grayscale_button.pack(side=tk.LEFT, padx=5)
         self.detect_hands_button = tk.Button(self.controls_frame, text="Detect Hands", command=self.detect_hands)
         self.detect_hands_button.pack(side=tk.LEFT, padx=5)
+        self.remove_bg_button = tk.Button(self.controls_frame, text="Remove Background", command=self.remove_background)
+        self.remove_bg_button.pack(side=tk.LEFT, padx=5)
 
         self.reset_button.pack_forget() # Hide reset button initially
         self.controls_frame.pack_forget() # Hide controls frame initially
@@ -49,11 +51,16 @@ class ImageUploader(tk.Tk):
         self.current_zoom = 1.0
         self.photo = None # To prevent garbage collection
         self.hand_landmarks = None
+        self.bg_removed = False
 
         # Initialize MediaPipe Hands
         self.mp_hands = mp.solutions.hands
         self.hands = self.mp_hands.Hands(static_image_mode=True, max_num_hands=2, min_detection_confidence=0.5)
         self.mp_drawing = mp.solutions.drawing_utils
+
+        # Initialize Selfie Segmentation
+        self.mp_selfie_segmentation = mp.solutions.selfie_segmentation
+        self.selfie_segmentation = self.mp_selfie_segmentation.SelfieSegmentation(model_selection=1)
 
     def upload_image(self):
         file_path = filedialog.askopenfilename(filetypes=[("Image Files", "*.jpg *.jpeg *.png *.gif")])
@@ -88,6 +95,8 @@ class ImageUploader(tk.Tk):
 
     def convert_to_grayscale(self):
         self.is_grayscale = not self.is_grayscale
+        if self.is_grayscale and self.bg_removed:
+            self.bg_removed = False
         self.update_image_display()
 
     def detect_hands(self):
@@ -101,6 +110,12 @@ class ImageUploader(tk.Tk):
             self.hand_landmarks = results.multi_hand_landmarks
             self.update_image_display()
 
+    def remove_background(self):
+        self.bg_removed = not self.bg_removed
+        if self.bg_removed and self.is_grayscale:
+            self.is_grayscale = False
+        self.update_image_display()
+
     def zoom_in(self):
         self.current_zoom *= 1.2
         self.update_image_display()
@@ -113,25 +128,45 @@ class ImageUploader(tk.Tk):
         if self.original_image:
             image_to_display = self.original_image.copy()
 
+            if self.bg_removed:
+                # Process the image with Selfie Segmentation to get the mask
+                image_np_rgb = np.array(self.original_image.convert('RGB'))
+                results = self.selfie_segmentation.process(image_np_rgb)
+                mask = results.segmentation_mask
+
+                # Create an RGBA image and set the alpha channel from the mask
+                image_np_rgba = np.array(self.original_image.convert('RGBA'))
+                image_np_rgba[:, :, 3] = (mask * 255).astype(np.uint8)
+                image_to_display = Image.fromarray(image_np_rgba)
+
             if self.is_grayscale:
                 image_to_display = image_to_display.convert('L')
 
             if self.hand_landmarks:
-                # Convert PIL image to OpenCV format for drawing
                 image_np = np.array(image_to_display)
-                if image_np.ndim == 2:  # Grayscale image
-                    annotated_image_np = cv2.cvtColor(image_np, cv2.COLOR_GRAY2BGR)
-                else:  # Color image
-                    annotated_image_np = cv2.cvtColor(image_np, cv2.COLOR_RGB2BGR)
+
+                if image_np.ndim == 3 and image_np.shape[2] == 4: # RGBA
+                    alpha = image_np[:,:,3]
+                    image_to_draw_on = cv2.cvtColor(image_np, cv2.COLOR_RGBA2BGR)
+                elif image_np.ndim == 2: # Grayscale
+                    alpha = None
+                    image_to_draw_on = cv2.cvtColor(image_np, cv2.COLOR_GRAY2BGR)
+                else: # RGB
+                    alpha = None
+                    image_to_draw_on = cv2.cvtColor(image_np, cv2.COLOR_RGB2BGR)
 
                 for hand_landmarks in self.hand_landmarks:
                     self.mp_drawing.draw_landmarks(
-                        annotated_image_np,
+                        image_to_draw_on,
                         hand_landmarks,
                         self.mp_hands.HAND_CONNECTIONS)
 
-                # Convert back to PIL Image
-                image_to_display = Image.fromarray(cv2.cvtColor(annotated_image_np, cv2.COLOR_BGR2RGB))
+                if alpha is not None:
+                    converted_back = cv2.cvtColor(image_to_draw_on, cv2.COLOR_BGR2RGBA)
+                    converted_back[:,:,3] = alpha
+                    image_to_display = Image.fromarray(converted_back)
+                else:
+                    image_to_display = Image.fromarray(cv2.cvtColor(image_to_draw_on, cv2.COLOR_BGR2RGB))
 
             width, height = image_to_display.size
             new_size = (int(width * self.current_zoom), int(height * self.current_zoom))
