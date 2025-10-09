@@ -1,9 +1,7 @@
 import tkinter as tk
 from tkinter import filedialog
 from PIL import Image, ImageTk
-import cv2
-import mediapipe as mp
-import numpy as np
+from image_processor import ImageProcessor
 
 class ImageUploader(tk.Tk):
     def __init__(self):
@@ -11,10 +9,14 @@ class ImageUploader(tk.Tk):
         self.title("Image Uploader")
         self.geometry("600x600")
 
+        self.image_processor = ImageProcessor()
+        self._init_ui()
+        self._init_state()
+
+    def _init_ui(self):
         self.upload_button = tk.Button(self, text="Upload Image", command=self.upload_image)
         self.upload_button.pack(pady=20)
 
-        # Create a frame for the canvas and scrollbars
         self.canvas_frame = tk.Frame(self)
         self.canvas = tk.Canvas(self.canvas_frame)
         self.v_scrollbar = tk.Scrollbar(self.canvas_frame, orient=tk.VERTICAL, command=self.canvas.yview)
@@ -29,7 +31,6 @@ class ImageUploader(tk.Tk):
         self.reset_button = tk.Button(self, text="Reset", command=self.reset)
         self.reset_button.pack(pady=10)
 
-        # Add a frame for control buttons
         self.controls_frame = tk.Frame(self)
         self.zoom_in_button = tk.Button(self.controls_frame, text="Zoom In", command=self.zoom_in)
         self.zoom_in_button.pack(side=tk.LEFT, padx=5)
@@ -39,51 +40,47 @@ class ImageUploader(tk.Tk):
         self.grayscale_button.pack(side=tk.LEFT, padx=5)
         self.detect_hands_button = tk.Button(self.controls_frame, text="Detect Hands", command=self.detect_hands)
         self.detect_hands_button.pack(side=tk.LEFT, padx=5)
-
         self.remove_bg_button = tk.Button(self.controls_frame, text="Remove Background", command=self.remove_background)
         self.remove_bg_button.pack(side=tk.LEFT, padx=5)
 
-        self.reset_button.pack_forget() # Hide reset button initially
-        self.controls_frame.pack_forget() # Hide controls frame initially
-        self.canvas_frame.pack_forget() # Hide canvas frame initially
+        self.reset_button.pack_forget()
+        self.controls_frame.pack_forget()
+        self.canvas_frame.pack_forget()
 
+    def _init_state(self):
         self.original_image = None
         self.is_grayscale = False
         self.current_zoom = 1.0
-        self.photo = None # To prevent garbage collection
+        self.photo = None
         self.hand_landmarks = None
-
-        # Initialize MediaPipe Hands
-        self.mp_hands = mp.solutions.hands
-        self.hands = self.mp_hands.Hands(static_image_mode=True, max_num_hands=2, min_detection_confidence=0.5)
-        self.mp_drawing = mp.solutions.drawing_utils
 
     def upload_image(self):
         file_path = filedialog.askopenfilename(filetypes=[("Image Files", "*.jpg *.jpeg *.png *.gif")])
         if file_path:
-            # Open and display the image
             self.original_image = Image.open(file_path)
-            self.is_grayscale = False
-            self.current_zoom = 1.0
+            self._reset_state()
             self.update_image_display()
+            self._show_controls()
 
-            # Hide upload button and show canvas, reset, and control buttons
-            self.upload_button.pack_forget()
-            self.canvas_frame.pack(pady=10, fill=tk.BOTH, expand=True)
-            self.reset_button.pack(pady=10)
-            self.controls_frame.pack(pady=5)
-
-    def reset(self):
-        # Clear the image from canvas
-        if self.canvas_image:
-            self.canvas.delete(self.canvas_image)
-            self.canvas_image = None
-        self.original_image = None
+    def _reset_state(self):
         self.is_grayscale = False
         self.current_zoom = 1.0
         self.hand_landmarks = None
 
-        # Hide canvas, reset, and control buttons and show upload button
+    def _show_controls(self):
+        self.upload_button.pack_forget()
+        self.canvas_frame.pack(pady=10, fill=tk.BOTH, expand=True)
+        self.reset_button.pack(pady=10)
+        self.controls_frame.pack(pady=5)
+
+    def reset(self):
+        if self.canvas_image:
+            self.canvas.delete(self.canvas_image)
+            self.canvas_image = None
+        self._init_state()
+        self._hide_controls()
+
+    def _hide_controls(self):
         self.canvas_frame.pack_forget()
         self.reset_button.pack_forget()
         self.controls_frame.pack_forget()
@@ -95,31 +92,13 @@ class ImageUploader(tk.Tk):
 
     def detect_hands(self):
         if self.original_image:
-            # Convert PIL image to OpenCV format
-            open_cv_image = cv2.cvtColor(np.array(self.original_image), cv2.COLOR_RGB2BGR)
-
-            # Process the image and find hands
-            results = self.hands.process(cv2.cvtColor(open_cv_image, cv2.COLOR_BGR2RGB))
-
-            self.hand_landmarks = results.multi_hand_landmarks
+            self.hand_landmarks = self.image_processor.detect_hands(self.original_image)
             self.update_image_display()
 
     def remove_background(self):
-       img = cv2.cvtColor(np.array(self.original_image.copy()), cv2.COLOR_RGB2BGR)
-       hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-       lower = np.array([0, 20, 80], dtype="uint8")
-       upper = np.array([50, 255, 255], dtype="uint8")
-       mask = cv2.inRange(hsv, lower, upper)
-       result = cv2.bitwise_and(img, img, mask=mask)
-       b, g, r = cv2.split(result)
-       filter = g.copy()
-       ret, mask = cv2.threshold(filter, 10, 255, 1)
-       img[mask == 255] = 255
-
-       self.original_image = Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
-       self.update_image_display()
-
-
+        if self.original_image:
+            self.original_image = self.image_processor.remove_background(self.original_image)
+            self.update_image_display()
 
     def zoom_in(self):
         self.current_zoom *= 1.2
@@ -134,36 +113,18 @@ class ImageUploader(tk.Tk):
             image_to_display = self.original_image.copy()
 
             if self.is_grayscale:
-                image_to_display = image_to_display.convert('L')
+                image_to_display = self.image_processor.convert_to_grayscale(image_to_display)
 
             if self.hand_landmarks:
-                # Convert PIL image to OpenCV format for drawing
-                image_np = np.array(image_to_display)
-                if image_np.ndim == 2:  # Grayscale image
-                    annotated_image_np = cv2.cvtColor(image_np, cv2.COLOR_GRAY2BGR)
-                else:  # Color image
-                    annotated_image_np = cv2.cvtColor(image_np, cv2.COLOR_RGB2BGR)
-
-                for hand_landmarks in self.hand_landmarks:
-                    self.mp_drawing.draw_landmarks(
-                        annotated_image_np,
-                        hand_landmarks,
-                        self.mp_hands.HAND_CONNECTIONS)
-
-                # Convert back to PIL Image
-                image_to_display = Image.fromarray(cv2.cvtColor(annotated_image_np, cv2.COLOR_BGR2RGB))
+                image_to_display = self.image_processor.draw_hand_landmarks(image_to_display, self.hand_landmarks)
 
             width, height = image_to_display.size
             new_size = (int(width * self.current_zoom), int(height * self.current_zoom))
             resized_image = image_to_display.resize(new_size, Image.Resampling.LANCZOS)
 
-            self.photo = ImageTk.PhotoImage(resized_image)  # Keep a reference
+            self.photo = ImageTk.PhotoImage(resized_image)
             if self.canvas_image:
                 self.canvas.delete(self.canvas_image)
 
             self.canvas_image = self.canvas.create_image(0, 0, anchor=tk.NW, image=self.photo)
             self.canvas.config(scrollregion=self.canvas.bbox(tk.ALL))
-
-if __name__ == "__main__":
-    app = ImageUploader()
-    app.mainloop()
