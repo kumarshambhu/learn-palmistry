@@ -58,6 +58,10 @@ class ImageUploader(tk.Tk):
         self.hands = self.mp_hands.Hands(static_image_mode=True, max_num_hands=2, min_detection_confidence=0.5)
         self.mp_drawing = mp.solutions.drawing_utils
 
+        # Initialize MediaPipe Selfie Segmentation
+        self.mp_selfie_segmentation = mp.solutions.selfie_segmentation
+        self.selfie_segmentation = self.mp_selfie_segmentation.SelfieSegmentation(model_selection=1)
+
     def upload_image(self):
         file_path = filedialog.askopenfilename(filetypes=[("Image Files", "*.jpg *.jpeg *.png *.gif")])
         if file_path:
@@ -105,18 +109,30 @@ class ImageUploader(tk.Tk):
             self.update_image_display()
 
     def remove_background(self):
-       img = cv2.cvtColor(np.array(self.original_image.copy()), cv2.COLOR_RGB2BGR)
-       hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-       lower = np.array([0, 20, 80], dtype="uint8")
-       upper = np.array([50, 255, 255], dtype="uint8")
-       mask = cv2.inRange(hsv, lower, upper)
-       result = cv2.bitwise_and(img, img, mask=mask)
-       b, g, r = cv2.split(result)
-       filter = g.copy()
-       ret, mask = cv2.threshold(filter, 10, 255, 1)
-       path_to_clean_image = './palm_without_background.jpg'
-       img[mask == 255] = 255
-       cv2.imwrite(path_to_clean_image, img)
+        if self.original_image:
+            # Convert PIL image to OpenCV format
+            image_np = cv2.cvtColor(np.array(self.original_image), cv2.COLOR_RGB2BGR)
+
+            # Process the image for selfie segmentation
+            results = self.selfie_segmentation.process(image_np)
+
+            # Create a mask from the segmentation results
+            mask = results.segmentation_mask > 0.9  # Threshold for segmentation
+            mask = mask.astype(np.uint8)
+
+            # Create a white background
+            white_background = np.ones_like(image_np) * 255
+
+            # Apply the mask to the original image
+            # The mask needs to be 3-channels to be applied to a 3-channel image
+            mask_3_channel = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
+            no_bg_image = np.where(mask_3_channel == 1, image_np, white_background)
+
+            # Convert the result back to a PIL image
+            self.original_image = Image.fromarray(cv2.cvtColor(no_bg_image, cv2.COLOR_BGR2RGB))
+
+            # Update the image display
+            self.update_image_display()
 
 
     def zoom_in(self):
