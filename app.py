@@ -40,6 +40,9 @@ class ImageUploader(tk.Tk):
         self.detect_hands_button = tk.Button(self.controls_frame, text="Detect Hands", command=self.detect_hands)
         self.detect_hands_button.pack(side=tk.LEFT, padx=5)
 
+        self.remove_bg_button = tk.Button(self.controls_frame, text="Remove Background", command=self.remove_background)
+        self.remove_bg_button.pack(side=tk.LEFT, padx=5)
+
         self.reset_button.pack_forget() # Hide reset button initially
         self.controls_frame.pack_forget() # Hide controls frame initially
         self.canvas_frame.pack_forget() # Hide canvas frame initially
@@ -100,6 +103,21 @@ class ImageUploader(tk.Tk):
 
             self.hand_landmarks = results.multi_hand_landmarks
             self.update_image_display()
+
+    def remove_background(self):
+       img = cv2.cvtColor(np.array(self.original_image.copy()), cv2.COLOR_RGB2BGR)
+       hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+       lower = np.array([0, 20, 80], dtype="uint8")
+       upper = np.array([50, 255, 255], dtype="uint8")
+       mask = cv2.inRange(hsv, lower, upper)
+       result = cv2.bitwise_and(img, img, mask=mask)
+       b, g, r = cv2.split(result)
+       filter = g.copy()
+       ret, mask = cv2.threshold(filter, 10, 255, 1)
+       path_to_clean_image = './palm_without_background.jpg'
+       img[mask == 255] = 255
+       cv2.imwrite(path_to_clean_image, img)
+
 
     def zoom_in(self):
         self.current_zoom *= 1.2
