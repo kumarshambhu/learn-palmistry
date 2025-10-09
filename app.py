@@ -116,7 +116,11 @@ class ImageUploader(tk.Tk):
        ret, mask = cv2.threshold(filter, 10, 255, 1)
        path_to_clean_image = './palm_without_background.jpg'
        img[mask == 255] = 255
-       cv2.imwrite(path_to_clean_image, img)
+       #cv2.imwrite(path_to_clean_image, img)
+
+       self.original_image = Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+       self.update_image_display()
+
 
 
     def zoom_in(self):
