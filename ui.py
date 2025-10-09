@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import filedialog
 from PIL import Image, ImageTk
-from .image_processor import ImageProcessor
+from image_processor import ImageProcessor
 
 class ImageUploader(tk.Tk):
     def __init__(self):
