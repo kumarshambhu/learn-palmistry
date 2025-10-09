@@ -38,14 +38,27 @@ class ImageProcessor:
         return Image.fromarray(cv2.cvtColor(annotated_image_np, cv2.COLOR_BGR2RGB))
 
     def remove_background(self, pil_image):
-        image_np = cv2.cvtColor(np.array(pil_image), cv2.COLOR_RGB2BGR)
-        results = self.selfie_segmentation.process(image_np)
-        mask = results.segmentation_mask > 0.9
-        mask = mask.astype(np.uint8)
-        white_background = np.ones_like(image_np) * 255
-        mask_3_channel = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
-        no_bg_image = np.where(mask_3_channel == 1, image_np, white_background)
-        return Image.fromarray(cv2.cvtColor(no_bg_image, cv2.COLOR_BGR2RGB))
+        # image_np = cv2.cvtColor(np.array(pil_image), cv2.COLOR_RGB2BGR)
+        # results = self.selfie_segmentation.process(image_np)
+        # mask = results.segmentation_mask > 0.9
+        # mask = mask.astype(np.uint8)
+        # white_background = np.ones_like(image_np) * 255
+        # mask_3_channel = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
+        # no_bg_image = np.where(mask_3_channel == 1, image_np, white_background)
+        # return Image.fromarray(cv2.cvtColor(no_bg_image, cv2.COLOR_BGR2RGB))
+
+        img = cv2.cvtColor(np.array(pil_image), cv2.COLOR_RGB2BGR)
+        hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+        lower = np.array([0, 20, 80], dtype="uint8")
+        upper = np.array([50, 255, 255], dtype="uint8")
+        mask = cv2.inRange(hsv, lower, upper)
+        result = cv2.bitwise_and(img, img, mask=mask)
+        b, g, r = cv2.split(result)
+        filter = g.copy()
+        ret, mask = cv2.threshold(filter, 10, 255, 1)
+        img[mask == 255] = 255
+
+        return Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
 
     def convert_to_grayscale(self, pil_image):
         return pil_image.convert('L')
