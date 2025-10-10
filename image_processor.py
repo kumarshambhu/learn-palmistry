@@ -38,15 +38,6 @@ class ImageProcessor:
         return Image.fromarray(cv2.cvtColor(annotated_image_np, cv2.COLOR_BGR2RGB))
 
     def remove_background(self, pil_image):
-        # image_np = cv2.cvtColor(np.array(pil_image), cv2.COLOR_RGB2BGR)
-        # results = self.selfie_segmentation.process(image_np)
-        # mask = results.segmentation_mask > 0.9
-        # mask = mask.astype(np.uint8)
-        # white_background = np.ones_like(image_np) * 255
-        # mask_3_channel = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
-        # no_bg_image = np.where(mask_3_channel == 1, image_np, white_background)
-        # return Image.fromarray(cv2.cvtColor(no_bg_image, cv2.COLOR_BGR2RGB))
-
         img = cv2.cvtColor(np.array(pil_image), cv2.COLOR_RGB2BGR)
         hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
         lower = np.array([0, 20, 80], dtype="uint8")

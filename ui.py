@@ -1,7 +1,11 @@
 import tkinter as tk
-from tkinter import filedialog
+from tkinter import filedialog, PhotoImage
+
 from PIL import Image, ImageTk
+
 from image_processor import ImageProcessor
+from styling_ui import zoom_in_style_button, zoom_out_style_button, image_style_button
+
 
 class ImageUploader(tk.Tk):
     def __init__(self):
@@ -14,6 +18,11 @@ class ImageUploader(tk.Tk):
         self._init_state()
 
     def _init_ui(self):
+
+        zoom_in_img = PhotoImage(file="images/zoom_in.png")
+
+
+
         self.upload_button = tk.Button(self, text="Upload Image", command=self.upload_image)
         self.upload_button.pack(pady=20)
 
@@ -28,19 +37,27 @@ class ImageUploader(tk.Tk):
         self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         self.canvas_image = None
 
-        self.reset_button = tk.Button(self, text="Reset", command=self.reset)
+        self.reset_button = tk.Button(self, text="Reset", command=self.reset, fg="white", bg="#FF0000")
         self.reset_button.pack(pady=10)
 
         self.controls_frame = tk.Frame(self)
-        self.zoom_in_button = tk.Button(self.controls_frame, text="Zoom In", command=self.zoom_in)
+        self.zoom_in_button = tk.Button(self.controls_frame, text="  Zoom In ", command=self.zoom_in)
+        image_style_button(self.zoom_in_button, './images/zoom_in.png')
         self.zoom_in_button.pack(side=tk.LEFT, padx=5)
-        self.zoom_out_button = tk.Button(self.controls_frame, text="Zoom Out", command=self.zoom_out)
+
+        self.zoom_out_button = tk.Button(self.controls_frame, text=" Zoom Out ", command=self.zoom_out)
+        image_style_button(self.zoom_out_button, './images/zoom_out.png')
         self.zoom_out_button.pack(side=tk.LEFT, padx=5)
-        self.grayscale_button = tk.Button(self.controls_frame, text="Grayscale", command=self.convert_to_grayscale)
+
+        self.grayscale_button = tk.Button(self.controls_frame, text="Grayscale", command=self.convert_to_grayscale,  bg="#808080", relief="raised")
         self.grayscale_button.pack(side=tk.LEFT, padx=5)
-        self.detect_hands_button = tk.Button(self.controls_frame, text="Detect Hands", command=self.detect_hands)
+
+        self.detect_hands_button = tk.Button(self.controls_frame, text=" Detect Hands ", command=self.detect_hands, relief="raised")
+        image_style_button(self.detect_hands_button, './images/hand.jpg')
         self.detect_hands_button.pack(side=tk.LEFT, padx=5)
+
         self.remove_bg_button = tk.Button(self.controls_frame, text="Remove Background", command=self.remove_background)
+        image_style_button(self.remove_bg_button, './images/eraser.png')
         self.remove_bg_button.pack(side=tk.LEFT, padx=5)
 
         self.reset_button.pack_forget()
