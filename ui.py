@@ -3,26 +3,33 @@ from tkinter import filedialog, PhotoImage
 
 from PIL import Image, ImageTk
 
+from constants import big_text
 from image_processor import ImageProcessor
 from styling_ui import zoom_in_style_button, zoom_out_style_button, image_style_button
 
 
+BG_COLOR = "#F5F5F5"
+TEXT_COLOR = "#333333"
+BTN_FONT = ("Helvetica", 10, "bold")
+LABEL_FONT = ("Helvetica", 10)
+
+
+# Function to update scroll region
+
+
 class ImageUploader(tk.Tk):
+    def on_configure(self, event):
+        self.canvas3.configure(scrollregion=self.canvas3.bbox("all"))
     def __init__(self):
         super().__init__()
         self.title("Image Uploader")
-        self.geometry("1200x600")
+        self.geometry("1200x400")
 
         self.image_processor = ImageProcessor()
         self._init_ui()
         self._init_state()
 
-    def _init_ui(self):
-        self.upload_button = tk.Button(self, text="Upload Image", command=self.upload_image)
-        self.upload_button.pack(pady=20)
-
-        self.canvases_container = tk.Frame(self)
-
+    def canvas1(self):
         # Canvas 1 for original image
         self.canvas_frame1 = tk.Frame(self.canvases_container)
         self.canvas1 = tk.Canvas(self.canvas_frame1)
@@ -35,6 +42,7 @@ class ImageUploader(tk.Tk):
         self.canvas_image1 = None
         self.canvas_frame1.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 5))
 
+    def canvas2(self):
         # Canvas 2 for processed image
         self.canvas_frame2 = tk.Frame(self.canvases_container)
         self.canvas2 = tk.Canvas(self.canvas_frame2)
@@ -46,6 +54,46 @@ class ImageUploader(tk.Tk):
         self.canvas2.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         self.canvas_image2 = None
         self.canvas_frame2.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(5, 0))
+
+    def canvas3(self):
+        self.canvas_frame3 = tk.Frame(self.canvases_container)
+        self.canvas_frame3.pack(fill="both", expand=True)
+
+        self.canvas3 = tk.Canvas(self.canvas_frame3)
+        self.canvas3.pack(side="left", fill="both", expand=True)
+
+        # Add a vertical scrollbar linked to the canvas
+        scrollbar = tk.Scrollbar(self.canvas_frame3, orient="vertical", command=self.canvas3.yview)
+        scrollbar.pack(side="right", fill="y")
+        self.canvas3.configure(yscrollcommand=scrollbar.set)
+
+        # Create a frame inside the canvas to hold the content
+        self.content_frame = tk.Frame(self.canvas3, bg="white")
+        self.canvas3.create_window((0, 0), window=self.content_frame, anchor="nw")
+
+        self.v_scrollbar3 = tk.Scrollbar(self.canvas_frame3, orient=tk.VERTICAL, command=self.canvas3.yview)
+        self.h_scrollbar3 = tk.Scrollbar(self.canvas_frame3, orient=tk.HORIZONTAL, command=self.canvas3.xview)
+        self.canvas3.configure(yscrollcommand=self.v_scrollbar3.set, xscrollcommand=self.h_scrollbar3.set)
+        self.v_scrollbar3.pack(side=tk.RIGHT, fill=tk.Y)
+        self.h_scrollbar3.pack(side=tk.BOTTOM, fill=tk.X)
+        self.canvas3.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        self.content_frame.bind("<Configure>", self.on_configure)
+        self.result_label = tk.Label(self.content_frame, text=f"{big_text}",
+                                     bg="white", anchor="w", justify="left",
+                                     wraplength=380,
+                                     font=LABEL_FONT)
+        self.result_label.pack(
+            anchor="nw", padx=10, pady=5)
+
+    def _init_ui(self):
+        self.upload_button = tk.Button(self, text="Upload Image", command=self.upload_image)
+        self.upload_button.pack(pady=20)
+
+        self.canvases_container = tk.Frame(self)
+        self.canvas1()
+        self.canvas2()
+        self.canvas3()
 
         self.reset_button = tk.Button(self, text="Reset", command=self.reset, fg="white", bg="#FF0000")
         self.reset_button.pack(pady=10)
@@ -59,10 +107,12 @@ class ImageUploader(tk.Tk):
         image_style_button(self.zoom_out_button, './images/zoom_out.png')
         self.zoom_out_button.pack(side=tk.LEFT, padx=5)
 
-        self.grayscale_button = tk.Button(self.controls_frame, text="Grayscale", command=self.convert_to_grayscale,  bg="#808080", relief="raised")
+        self.grayscale_button = tk.Button(self.controls_frame, text="Grayscale", command=self.convert_to_grayscale,
+                                          bg="#808080", relief="raised")
         self.grayscale_button.pack(side=tk.LEFT, padx=5)
 
-        self.detect_hands_button = tk.Button(self.controls_frame, text=" Detect Hands ", command=self.detect_hands, relief="raised")
+        self.detect_hands_button = tk.Button(self.controls_frame, text=" Detect Hands ", command=self.detect_hands,
+                                             relief="raised")
         image_style_button(self.detect_hands_button, './images/hand.jpg')
         self.detect_hands_button.pack(side=tk.LEFT, padx=5)
 
@@ -131,6 +181,7 @@ class ImageUploader(tk.Tk):
             self.update_image_display()
 
     def remove_background(self):
+        self.result_label.config(text=big_text)
         if self.original_image:
             self.processed_image = self.image_processor.remove_background(self.original_image)
             self.update_image_display()
