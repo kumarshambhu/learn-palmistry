@@ -49,19 +49,12 @@ class CanvasManager:
         self.canvas3 = tk.Canvas(self.canvas_frame3)
         self.canvas3.pack(side="left", fill="both", expand=True)
 
-        # Add a vertical scrollbar linked to the canvas
-        scrollbar = tk.Scrollbar(self.canvas_frame3, orient="vertical", command=self.canvas3.yview)
-        scrollbar.pack(side="right", fill="y")
-        self.canvas3.configure(yscrollcommand=scrollbar.set)
-
         # Create a frame inside the canvas to hold the content
         self.content_frame = tk.Frame(self.canvas3, bg="white")
-        self.canvas3.create_window((0, 0), window=self.content_frame, anchor="nw")
+        self.canvas3.create__window((0, 0), window=self.content_frame, anchor="nw")
 
-        self.v_scrollbar3 = tk.Scrollbar(self.canvas_frame3, orient=tk.VERTICAL, command=self.canvas3.yview)
         self.h_scrollbar3 = tk.Scrollbar(self.canvas_frame3, orient=tk.HORIZONTAL, command=self.canvas3.xview)
-        self.canvas3.configure(yscrollcommand=self.v_scrollbar3.set, xscrollcommand=self.h_scrollbar3.set)
-        self.v_scrollbar3.pack(side=tk.RIGHT, fill=tk.Y)
+        self.canvas3.configure(xscrollcommand=self.h_scrollbar3.set)
         self.h_scrollbar3.pack(side=tk.BOTTOM, fill=tk.X)
         self.canvas3.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
@@ -72,3 +65,12 @@ class CanvasManager:
                                      font=LABEL_FONT)
         self.result_label.pack(
             anchor="nw", padx=10, pady=5)
+
+    def update_hand_info_label(self):
+        if self.main_app.state_manager.handedness and self.main_app.state_manager.gestures:
+            hand_info = ""
+            for i, handedness in enumerate(self.main_app.state_manager.handedness):
+                hand_info += f"{handedness.classification[0].label} Hand: {self.main_app.state_manager.gestures[i]}\n"
+            self.result_label.config(text=hand_info)
+        else:
+            self.result_label.config(text=big_text)

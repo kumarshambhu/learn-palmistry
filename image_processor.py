@@ -17,9 +17,38 @@ class ImageProcessor:
     def detect_hands(self, pil_image):
         open_cv_image = cv2.cvtColor(np.array(pil_image), cv2.COLOR_RGB2BGR)
         results = self.hands.process(cv2.cvtColor(open_cv_image, cv2.COLOR_BGR2RGB))
-        return results.multi_hand_landmarks
+        return results.multi_hand_landmarks, results.multi_handedness
 
-    def draw_hand_landmarks(self, pil_image, hand_landmarks):
+    def get_hand_gesture(self, hand_landmarks):
+        if not hand_landmarks:
+            return "Unknown"
+
+        landmarks = hand_landmarks.landmark
+
+        # Simple check for fist: are fingertips lower than pip joints?
+        is_fist = (
+            landmarks[self.mp_hands.HandLandmark.INDEX_FINGER_TIP].y > landmarks[self.mp_hands.HandLandmark.INDEX_FINGER_PIP].y and
+            landmarks[self.mp_hands.HandLandmark.MIDDLE_FINGER_TIP].y > landmarks[self.mp_hands.HandLandmark.MIDDLE_FINGER_PIP].y and
+            landmarks[self.mp_hands.HandLandmark.RING_FINGER_TIP].y > landmarks[self.mp_hands.HandLandmark.RING_FINGER_PIP].y and
+            landmarks[self.mp_hands.HandLandmark.PINKY_TIP].y > landmarks[self.mp_hands.HandLandmark.PINKY_PIP].y
+        )
+
+        # Simple check for open palm: are fingertips higher than pip joints?
+        is_open_palm = (
+            landmarks[self.mp_hands.HandLandmark.INDEX_FINGER_TIP].y < landmarks[self.mp_hands.HandLandmark.INDEX_FINGER_PIP].y and
+            landmarks[self.mp_hands.HandLandmark.MIDDLE_FINGER_TIP].y < landmarks[self.mp_hands.HandLandmark.MIDDLE_FINGER_PIP].y and
+            landmarks[self.mp_hands.HandLandmark.RING_FINGER_TIP].y < landmarks[self.mp_hands.HandLandmark.RING_FINGER_PIP].y and
+            landmarks[self.mp_hands.HandLandmark.PINKY_TIP].y < landmarks[self.mp_hands.HandLandmark.PINKY_PIP].y
+        )
+
+        if is_fist:
+            return "Fist"
+        elif is_open_palm:
+            return "Open Palm"
+        else:
+            return "Unknown"
+
+    def draw_hand_landmarks(self, pil_image, hand_landmarks, handedness, gestures):
         if not hand_landmarks:
             return pil_image
 
@@ -29,11 +58,22 @@ class ImageProcessor:
         else:  # Color image
             annotated_image_np = cv2.cvtColor(image_np, cv2.COLOR_RGB2BGR)
 
-        for landmarks in hand_landmarks:
+        for i, landmarks in enumerate(hand_landmarks):
             self.mp_drawing.draw_landmarks(
                 annotated_image_np,
                 landmarks,
                 self.mp_hands.HAND_CONNECTIONS)
+
+            # Get hand type and gesture
+            hand_type = handedness[i].classification[0].label
+            gesture = gestures[i]
+
+            # Get position for the text
+            x = int(landmarks.landmark[self.mp_hands.HandLandmark.WRIST].x * image_np.shape[1])
+            y = int(landmarks.landmark[self.mp_hands.HandLandmark.WRIST].y * image_np.shape[0])
+
+            # Put text on the image
+            cv2.putText(annotated_image_np, f"{hand_type} Hand: {gesture}", (x, y), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
 
         return Image.fromarray(cv2.cvtColor(annotated_image_np, cv2.COLOR_BGR2RGB))
 

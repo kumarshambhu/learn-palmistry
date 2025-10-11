@@ -7,6 +7,8 @@ class StateManager:
         self.photo1 = None
         self.photo2 = None
         self.hand_landmarks = None
+        self.handedness = None
+        self.gestures = None
 
     def _reset_state(self):
         if self.original_image:
@@ -14,3 +16,5 @@ class StateManager:
         self.is_grayscale = False
         self.current_zoom = 1.0
         self.hand_landmarks = None
+        self.handedness = None
+        self.gestures = None

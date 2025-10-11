@@ -47,8 +47,11 @@ class EventHandlers:
 
     def detect_hands(self):
         if self.state_manager.original_image:
-            self.state_manager.hand_landmarks = self.main_app.image_processor.detect_hands(self.state_manager.original_image)
+            self.state_manager.hand_landmarks, self.state_manager.handedness = self.main_app.image_processor.detect_hands(self.state_manager.original_image)
+            if self.state_manager.hand_landmarks:
+                self.state_manager.gestures = [self.main_app.image_processor.get_hand_gesture(landmarks) for landmarks in self.state_manager.hand_landmarks]
             self.update_image_display()
+            self.canvas_manager.update_hand_info_label()
 
     def remove_background(self):
         self.canvas_manager.result_label.config(text=big_text)
@@ -81,7 +84,7 @@ class EventHandlers:
             if self.state_manager.is_grayscale:
                 image_to_display = self.main_app.image_processor.convert_to_grayscale(image_to_display)
             if self.state_manager.hand_landmarks:
-                image_to_display = self.main_app.image_processor.draw_hand_landmarks(image_to_display, self.state_manager.hand_landmarks)
+                image_to_display = self.main_app.image_processor.draw_hand_landmarks(image_to_display, self.state_manager.hand_landmarks, self.state_manager.handedness, self.state_manager.gestures)
 
             width2, height2 = image_to_display.size
             new_size2 = (int(width2 * self.state_manager.current_zoom), int(height2 * self.state_manager.current_zoom))
