@@ -7,6 +7,7 @@ class StateManager:
         self.photo1 = None
         self.photo2 = None
         self.hand_landmarks = None
+        self.hand_type = None
 
     def _reset_state(self):
         if self.original_image:

@@ -28,5 +28,8 @@ class Controls:
         image_style_button(self.remove_bg_button, './images/eraser.png')
         self.remove_bg_button.pack(side=tk.LEFT, padx=5)
 
+        self.hand_type_label = tk.Label(self.controls_frame, text="Hand Type: N/A", font=("Helvetica", 10, "bold"))
+        self.hand_type_label.pack(side=tk.LEFT, padx=5)
+
         self.controls_frame.pack(pady=5)
         self.controls_frame.pack_forget()

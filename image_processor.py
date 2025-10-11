@@ -37,6 +37,43 @@ class ImageProcessor:
 
         return Image.fromarray(cv2.cvtColor(annotated_image_np, cv2.COLOR_BGR2RGB))
 
+    def _calculate_distance(self, landmark1, landmark2):
+        return np.sqrt((landmark1.x - landmark2.x)**2 + (landmark1.y - landmark2.y)**2)
+
+    def classify_hand_type(self, hand_landmarks):
+        if not hand_landmarks:
+            return "Uncertain"
+
+        # Get landmarks
+        wrist = hand_landmarks.landmark[self.mp_hands.HandLandmark.WRIST]
+        index_mcp = hand_landmarks.landmark[self.mp_hands.HandLandmark.INDEX_FINGER_MCP]
+        middle_mcp = hand_landmarks.landmark[self.mp_hands.HandLandmark.MIDDLE_FINGER_MCP]
+        middle_tip = hand_landmarks.landmark[self.mp_hands.HandLandmark.MIDDLE_FINGER_TIP]
+        pinky_mcp = hand_landmarks.landmark[self.mp_hands.HandLandmark.PINKY_FINGER_MCP]
+
+        # Calculate distances
+        palm_length = self._calculate_distance(wrist, middle_mcp)
+        palm_width = self._calculate_distance(index_mcp, pinky_mcp)
+        finger_length = self._calculate_distance(middle_mcp, middle_tip)
+
+        if palm_length == 0 or palm_width == 0:
+            return "Uncertain"
+
+        # Classify based on ratios
+        palm_ratio = palm_width / palm_length
+        finger_to_palm_ratio = finger_length / palm_length
+
+        if palm_ratio > 0.9:  # Square palm
+            if finger_to_palm_ratio > 1.0:
+                return "Air"
+            else:
+                return "Earth"
+        else:  # Rectangular palm
+            if finger_to_palm_ratio > 1.0:
+                return "Water"
+            else:
+                return "Fire"
+
     def remove_background(self, pil_image):
         img = cv2.cvtColor(np.array(pil_image), cv2.COLOR_RGB2BGR)
         hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)

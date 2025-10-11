@@ -1,5 +1,5 @@
 from tkinter import filedialog
-from PIL import Image, ImageTk
+from PIL import Image, ImageTk, ImageDraw, ImageFont
 from constants import big_text
 import tkinter as tk
 
@@ -48,6 +48,8 @@ class EventHandlers:
     def detect_hands(self):
         if self.state_manager.original_image:
             self.state_manager.hand_landmarks = self.main_app.image_processor.detect_hands(self.state_manager.original_image)
+            if self.state_manager.hand_landmarks:
+                self.state_manager.hand_type = self.main_app.image_processor.classify_hand_type(self.state_manager.hand_landmarks[0])
             self.update_image_display()
 
     def remove_background(self):
@@ -82,6 +84,13 @@ class EventHandlers:
                 image_to_display = self.main_app.image_processor.convert_to_grayscale(image_to_display)
             if self.state_manager.hand_landmarks:
                 image_to_display = self.main_app.image_processor.draw_hand_landmarks(image_to_display, self.state_manager.hand_landmarks)
+                if self.state_manager.hand_type:
+                    self.controls.hand_type_label.config(text=f"Hand Type: {self.state_manager.hand_type}")
+                    draw = ImageDraw.Draw(image_to_display)
+                    font = ImageFont.load_default()
+                    draw.text((10, 10), f"Hand Type: {self.state_manager.hand_type}", fill="red", font=font)
+                else:
+                    self.controls.hand_type_label.config(text="Hand Type: N/A")
 
             width2, height2 = image_to_display.size
             new_size2 = (int(width2 * self.state_manager.current_zoom), int(height2 * self.state_manager.current_zoom))
