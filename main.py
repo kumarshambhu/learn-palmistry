@@ -1,4 +1,4 @@
-from ui import ImageUploader
+from main_window import ImageUploader
 
 def main():
     app = ImageUploader()
