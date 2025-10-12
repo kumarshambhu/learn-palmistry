@@ -7,7 +7,6 @@ class CanvasManager:
     def __init__(self, main_app):
         self.main_app = main_app
         self.canvases_container = tk.Frame(self.main_app)
-        self.canvas1()
         self.canvas2()
         self.canvas3()
         self.canvases_container.pack(pady=10, fill=tk.BOTH, expand=True)
@@ -16,21 +15,8 @@ class CanvasManager:
     def on_configure(self, event):
         self.canvas3.configure(scrollregion=self.canvas3.bbox("all"))
 
-    def canvas1(self):
-        # Canvas 1 for original image
-        self.canvas_frame1 = tk.Frame(self.canvases_container)
-        self.canvas1 = tk.Canvas(self.canvas_frame1)
-        self.v_scrollbar1 = tk.Scrollbar(self.canvas_frame1, orient=tk.VERTICAL, command=self.canvas1.yview)
-        self.h_scrollbar1 = tk.Scrollbar(self.canvas_frame1, orient=tk.HORIZONTAL, command=self.canvas1.xview)
-        self.canvas1.configure(yscrollcommand=self.v_scrollbar1.set, xscrollcommand=self.h_scrollbar1.set)
-        self.v_scrollbar1.pack(side=tk.RIGHT, fill=tk.Y)
-        self.h_scrollbar1.pack(side=tk.BOTTOM, fill=tk.X)
-        self.canvas1.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        self.canvas_image1 = None
-        self.canvas_frame1.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 5))
-
     def canvas2(self):
-        # Canvas 2 for processed image
+        # Canvas 2 for the image
         self.canvas_frame2 = tk.Frame(self.canvases_container)
         self.canvas2 = tk.Canvas(self.canvas_frame2)
         self.v_scrollbar2 = tk.Scrollbar(self.canvas_frame2, orient=tk.VERTICAL, command=self.canvas2.yview)
@@ -40,11 +26,11 @@ class CanvasManager:
         self.h_scrollbar2.pack(side=tk.BOTTOM, fill=tk.X)
         self.canvas2.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         self.canvas_image2 = None
-        self.canvas_frame2.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(5, 0))
+        self.canvas_frame2.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 5))
 
     def canvas3(self):
         self.canvas_frame3 = tk.Frame(self.canvases_container)
-        self.canvas_frame3.pack(fill="both", expand=True)
+        self.canvas_frame3.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(5, 0))
 
         self.canvas3 = tk.Canvas(self.canvas_frame3)
         self.canvas3.pack(side="left", fill="both", expand=True)

@@ -26,9 +26,6 @@ class EventHandlers:
         self.controls.controls_frame.pack(pady=5)
 
     def reset(self):
-        if self.canvas_manager.canvas_image1:
-            self.canvas_manager.canvas1.delete(self.canvas_manager.canvas_image1)
-            self.canvas_manager.canvas_image1 = None
         if self.canvas_manager.canvas_image2:
             self.canvas_manager.canvas2.delete(self.canvas_manager.canvas_image2)
             self.canvas_manager.canvas_image2 = None
@@ -79,29 +76,22 @@ class EventHandlers:
 
     def update_image_display(self):
         if self.state_manager.original_image:
-            # Update original image canvas
-            width1, height1 = self.state_manager.original_image.size
-            new_size1 = (int(width1 * self.state_manager.current_zoom), int(height1 * self.state_manager.current_zoom))
-            resized_image1 = self.state_manager.original_image.resize(new_size1, Image.Resampling.LANCZOS)
-            self.state_manager.photo1 = ImageTk.PhotoImage(resized_image1)
-            if self.canvas_manager.canvas_image1:
-                self.canvas_manager.canvas1.delete(self.canvas_manager.canvas_image1)
-            self.canvas_manager.canvas_image1 = self.canvas_manager.canvas1.create_image(0, 0, anchor=tk.NW, image=self.state_manager.photo1)
-            self.canvas_manager.canvas1.config(scrollregion=self.canvas_manager.canvas1.bbox(tk.ALL))
-
-            # Update processed image canvas
+            # Processed image is now the main image to display
             image_to_display = self.state_manager.processed_image.copy()
+
             if self.state_manager.is_grayscale:
                 image_to_display = self.main_app.image_processor.convert_to_grayscale(image_to_display)
             if self.state_manager.hand_landmarks:
                 image_to_display = self.main_app.image_processor.draw_hand_landmarks(image_to_display, self.state_manager.hand_landmarks)
 
-            width2, height2 = image_to_display.size
-            new_size2 = (int(width2 * self.state_manager.current_zoom), int(height2 * self.state_manager.current_zoom))
-            resized_image2 = image_to_display.resize(new_size2, Image.Resampling.LANCZOS)
+            width, height = image_to_display.size
+            new_size = (int(width * self.state_manager.current_zoom), int(height * self.state_manager.current_zoom))
+            resized_image = image_to_display.resize(new_size, Image.Resampling.LANCZOS)
 
-            self.state_manager.photo2 = ImageTk.PhotoImage(resized_image2)
+            # PhotoImage needs to be a member of the class to avoid garbage collection
+            self.main_app.photo = ImageTk.PhotoImage(resized_image)
             if self.canvas_manager.canvas_image2:
                 self.canvas_manager.canvas2.delete(self.canvas_manager.canvas_image2)
-            self.canvas_manager.canvas_image2 = self.canvas_manager.canvas2.create_image(0, 0, anchor=tk.NW, image=self.state_manager.photo2)
+
+            self.canvas_manager.canvas_image2 = self.canvas_manager.canvas2.create_image(0, 0, anchor=tk.NW, image=self.main_app.photo)
             self.canvas_manager.canvas2.config(scrollregion=self.canvas_manager.canvas2.bbox(tk.ALL))
