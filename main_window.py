@@ -27,4 +27,10 @@ class ImageUploader(tk.Tk):
         self.reset_button = tk.Button(self, text="Reset", command=self.event_handlers.reset, fg="white", bg="#FF0000")
         self.reset_button.pack(pady=10)
 
+        self.hand_type_label = tk.Label(self, text="", font=("Arial", 14, "bold"))
+        self.hand_type_label.pack(pady=5)
+
         self.reset_button.pack_forget()
+
+    def update_hand_type_label(self, text):
+        self.hand_type_label.config(text=text)

@@ -53,3 +53,41 @@ class ImageProcessor:
 
     def convert_to_grayscale(self, pil_image):
         return pil_image.convert('L')
+
+    def detect_hand_type(self, hand_landmarks):
+        if not hand_landmarks:
+            return "Hand not detected"
+
+        # Using the first detected hand
+        landmarks = hand_landmarks[0].landmark
+
+        # Helper to calculate distance
+        def _calculate_distance(p1, p2):
+            return np.sqrt((p1.x - p2.x)**2 + (p1.y - p2.y)**2 + (p1.z - p2.z)**2)
+
+        # Palm width: Distance between the base of the index and pinky fingers
+        palm_width = _calculate_distance(landmarks[self.mp_hands.HandLandmark.INDEX_FINGER_MCP],
+                                         landmarks[self.mp_hands.HandLandmark.PINKY_MCP])
+
+        # Palm height: Distance from the wrist to the base of the middle finger
+        palm_height = _calculate_distance(landmarks[self.mp_hands.HandLandmark.WRIST],
+                                          landmarks[self.mp_hands.HandLandmark.MIDDLE_FINGER_MCP])
+
+        # Middle finger length: Distance from the base to the tip of the middle finger
+        finger_length = _calculate_distance(landmarks[self.mp_hands.HandLandmark.MIDDLE_FINGER_MCP],
+                                            landmarks[self.mp_hands.HandLandmark.MIDDLE_FINGER_TIP])
+
+        # Classification logic
+        is_long_palm = palm_height > palm_width
+        is_long_fingers = finger_length > palm_height
+
+        if not is_long_palm and not is_long_fingers:
+            return "Earth Hand (Practical and Grounded)"
+        elif not is_long_palm and is_long_fingers:
+            return "Air Hand (Intellectual and Communicative)"
+        elif is_long_palm and is_long_fingers:
+            return "Water Hand (Emotional and Intuitive)"
+        elif is_long_palm and not is_long_fingers:
+            return "Fire Hand (Energetic and Passionate)"
+        else:
+            return "Could not determine hand type"

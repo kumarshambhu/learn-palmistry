@@ -32,6 +32,8 @@ class EventHandlers:
         if self.canvas_manager.canvas_image2:
             self.canvas_manager.canvas2.delete(self.canvas_manager.canvas_image2)
             self.canvas_manager.canvas_image2 = None
+        if hasattr(self.main_app, 'hand_type_label'):
+            self.main_app.hand_type_label.config(text="")
         self.state_manager.__init__()
         self._hide_controls()
 
@@ -63,6 +65,17 @@ class EventHandlers:
     def zoom_out(self):
         self.state_manager.current_zoom /= 1.2
         self.update_image_display()
+
+    def detect_hand_type(self):
+        if self.state_manager.original_image:
+            if not self.state_manager.hand_landmarks:
+                self.detect_hands()  # Ensure landmarks are detected first
+
+            if self.state_manager.hand_landmarks:
+                hand_type = self.main_app.image_processor.detect_hand_type(self.state_manager.hand_landmarks)
+                self.main_app.update_hand_type_label(hand_type)
+            else:
+                self.main_app.update_hand_type_label("No hands detected to classify.")
 
     def update_image_display(self):
         if self.state_manager.original_image:
