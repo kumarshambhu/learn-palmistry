@@ -54,7 +54,6 @@ class CanvasManager:
         self.content_frame.bind("<Configure>", self.on_configure)
         self.result_label = tk.Label(self.content_frame, text=f"{big_text}",
                                      bg="white", anchor="w", justify="left",
-                                     wraplength=380,
                                      font=LABEL_FONT)
         self.result_label.pack(
             anchor="nw", padx=10, pady=5)
