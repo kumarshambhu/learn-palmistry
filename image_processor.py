@@ -91,3 +91,10 @@ class ImageProcessor:
             return "Fire"
         else:
             return "Could not determine hand type"
+
+    def predict_palmistry(self, line_coords):
+        # Placeholder prediction logic
+        if len(line_coords) > 100:
+            return "You have a long life line!"
+        else:
+            return "Your life line is short."

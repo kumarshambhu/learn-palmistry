@@ -99,3 +99,22 @@ class EventHandlers:
 
             self.canvas_manager.canvas_image2 = self.canvas_manager.canvas2.create_image(0, 0, anchor=tk.NW, image=self.main_app.photo)
             self.canvas_manager.canvas2.config(scrollregion=self.canvas_manager.canvas2.bbox(tk.ALL))
+
+    def draw_line_and_predict(self):
+        self.canvas_manager.canvas2.bind("<B1-Motion>", self._draw_line)
+        self.main_app.update_hand_details_data("Draw a line")
+
+    def _draw_line(self, event):
+        x, y = event.x, event.y
+        if self.state_manager.last_x is None:
+            self.state_manager.last_x, self.state_manager.last_y = x, y
+            return
+
+        self.canvas_manager.canvas2.create_line((self.state_manager.last_x, self.state_manager.last_y, x, y), fill="red", width=2)
+        self.state_manager.last_x, self.state_manager.last_y = x, y
+        self.state_manager.drawn_line_coords.append((x, y))
+
+        # Perform prediction after drawing
+        if len(self.state_manager.drawn_line_coords) > 1:
+            prediction = self.main_app.image_processor.predict_palmistry(self.state_manager.drawn_line_coords)
+            self.main_app.update_hand_details_data(prediction)
