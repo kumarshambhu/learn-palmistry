@@ -7,6 +7,10 @@ class StateManager:
         self.photo1 = None
         self.photo2 = None
         self.hand_landmarks = None
+        self.is_drawing = False
+        self.drawn_line_coords = []
+        self.last_x = None
+        self.last_y = None
 
     def _reset_state(self):
         if self.original_image:

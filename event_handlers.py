@@ -101,20 +101,33 @@ class EventHandlers:
             self.canvas_manager.canvas2.config(scrollregion=self.canvas_manager.canvas2.bbox(tk.ALL))
 
     def draw_line_and_predict(self):
-        self.canvas_manager.canvas2.bind("<B1-Motion>", self._draw_line)
-        self.main_app.update_hand_details_data("Draw a line")
+        self.state_manager.is_drawing = not self.state_manager.is_drawing
+        if self.state_manager.is_drawing:
+            self.main_app.update_hand_details_data("Drawing mode enabled. Draw a line.")
+            self.canvas_manager.canvas2.bind("<Button-1>", self._start_draw)
+            self.canvas_manager.canvas2.bind("<B1-Motion>", self._draw_line)
+            self.canvas_manager.canvas2.bind("<ButtonRelease-1>", self._end_draw)
+        else:
+            self.main_app.update_hand_details_data("Drawing mode disabled.")
+            self.canvas_manager.canvas2.unbind("<Button-1>")
+            self.canvas_manager.canvas2.unbind("<B1-Motion>")
+            self.canvas_manager.canvas2.unbind("<ButtonRelease-1>")
+
+    def _start_draw(self, event):
+        self.state_manager.drawn_line_coords = []
+        self.state_manager.last_x, self.state_manager.last_y = event.x, event.y
 
     def _draw_line(self, event):
-        x, y = event.x, event.y
-        if self.state_manager.last_x is None:
+        if self.state_manager.is_drawing:
+            x, y = event.x, event.y
+            self.canvas_manager.canvas2.create_line((self.state_manager.last_x, self.state_manager.last_y, x, y), fill="red", width=2)
             self.state_manager.last_x, self.state_manager.last_y = x, y
-            return
+            self.state_manager.drawn_line_coords.append((x, y))
 
-        self.canvas_manager.canvas2.create_line((self.state_manager.last_x, self.state_manager.last_y, x, y), fill="red", width=2)
-        self.state_manager.last_x, self.state_manager.last_y = x, y
-        self.state_manager.drawn_line_coords.append((x, y))
-
-        # Perform prediction after drawing
-        if len(self.state_manager.drawn_line_coords) > 1:
-            prediction = self.main_app.image_processor.predict_palmistry(self.state_manager.drawn_line_coords)
-            self.main_app.update_hand_details_data(prediction)
+    def _end_draw(self, event):
+        if self.state_manager.is_drawing:
+            if len(self.state_manager.drawn_line_coords) > 1:
+                prediction = self.main_app.image_processor.predict_palmistry(self.state_manager.drawn_line_coords)
+                self.main_app.update_hand_details_data(prediction)
+            self.state_manager.is_drawing = False
+            self.draw_line_and_predict() # Toggle drawing mode off
