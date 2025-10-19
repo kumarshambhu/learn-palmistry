@@ -82,12 +82,12 @@ class ImageProcessor:
         is_long_fingers = finger_length > palm_height
 
         if not is_long_palm and not is_long_fingers:
-            return "Earth Hand (Practical and Grounded)"
+            return "Earth"
         elif not is_long_palm and is_long_fingers:
-            return "Air Hand (Intellectual and Communicative)"
+            return "Air"
         elif is_long_palm and is_long_fingers:
-            return "Water Hand (Emotional and Intuitive)"
+            return "Water"
         elif is_long_palm and not is_long_fingers:
-            return "Fire Hand (Energetic and Passionate)"
+            return "Fire"
         else:
             return "Could not determine hand type"

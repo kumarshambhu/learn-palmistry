@@ -1,42 +1,35 @@
 import tkinter as tk
 
-from constants import big_text
-
-# Create the main window
 root = tk.Tk()
-root.title("Scrollable Canvas with Text")
+root.title("Scrollable Label with Big Sentence")
+root.geometry("500x300")
 
-# Create a frame to hold the canvas and scrollbar
-container = tk.Frame(root)
-container.pack(fill="both", expand=True)
-
-# Create a canvas inside the frame
-canvas = tk.Canvas(container, width=400, height=300, bg="white")
-canvas.pack(side="left", fill="both", expand=True)
-
-# Add a vertical scrollbar linked to the canvas
-scrollbar = tk.Scrollbar(container, orient="vertical", command=canvas.yview)
-scrollbar.pack(side="right", fill="y")
+# Create canvas and scrollbar
+canvas = tk.Canvas(root, borderwidth=0)
+scrollbar = tk.Scrollbar(root, orient="vertical", command=canvas.yview)
 canvas.configure(yscrollcommand=scrollbar.set)
 
-# Create a frame inside the canvas to hold the content
-content_frame = tk.Frame(canvas, bg="white")
-canvas.create_window((0, 0), window=content_frame, anchor="nw")
+scrollbar.pack(side="right", fill="y")
+canvas.pack(side="left", fill="both", expand=True)
 
-# Function to update scroll region
-def on_configure(event):
-    canvas.configure(scrollregion=canvas.bbox("all"))
+# Create a frame inside the canvas
+frame = tk.Frame(canvas)
+canvas.create_window((0, 0), window=frame, anchor="nw")
 
-content_frame.bind("<Configure>", on_configure)
-
-# Add lots of text labels to demonstrate scrolling
-long_text = (
-    "This is a long block of text that demonstrates how to use a canvas with a scrollbar. "
-    "Each line is a separate label widget inside a frame embedded in the canvas. "
-    "You can scroll through the content using the scrollbar on the right."
+# Big sentence (long paragraph)
+big_sentence = (
+    "You can keep adding more text here to simulate a large block of content that needs to be scrolled "
+    "vertically. This is useful for displaying logs, long descriptions, or any text-heavy UI element."
 )
 
-tk.Label(content_frame, text=f"{big_text}", bg="white", anchor="w", justify="left", wraplength=380).pack(anchor="w", padx=10, pady=5)
+# Add the label
+label = tk.Label(frame, text=big_sentence, wraplength=480, justify="left", anchor="nw")
+label.pack(fill="both", expand=True)
 
-# Run the application
+# Update scroll region
+def on_frame_configure(event):
+    canvas.configure(scrollregion=canvas.bbox("all"))
+
+frame.bind("<Configure>", on_frame_configure)
+
 root.mainloop()

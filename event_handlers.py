@@ -1,5 +1,7 @@
 from tkinter import filedialog
 from PIL import Image, ImageTk
+
+import app_utils
 from constants import big_text
 import tkinter as tk
 
@@ -22,7 +24,7 @@ class EventHandlers:
     def _show_controls(self):
         self.main_app.upload_button.pack_forget()
         self.canvas_manager.canvases_container.pack(pady=10, fill=tk.BOTH, expand=True)
-        self.main_app.reset_button.pack(pady=10)
+        #self.main_app.reset_button.pack(pady=10)
         self.controls.controls_frame.pack(pady=5)
 
     def reset(self):
@@ -36,7 +38,7 @@ class EventHandlers:
 
     def _hide_controls(self):
         self.canvas_manager.canvases_container.pack_forget()
-        self.main_app.reset_button.pack_forget()
+        #self.main_app.reset_button.pack_forget()
         self.controls.controls_frame.pack_forget()
         self.main_app.upload_button.pack(pady=20)
 
@@ -50,7 +52,7 @@ class EventHandlers:
             self.update_image_display()
 
     def remove_background(self):
-        self.canvas_manager.result_label.config(text=big_text)
+        #self.canvas_manager.result_label.config(text=big_text)
         if self.state_manager.original_image:
             self.state_manager.processed_image = self.main_app.image_processor.remove_background(self.state_manager.original_image)
             self.update_image_display()
@@ -71,6 +73,8 @@ class EventHandlers:
             if self.state_manager.hand_landmarks:
                 hand_type = self.main_app.image_processor.detect_hand_type(self.state_manager.hand_landmarks)
                 self.main_app.update_hand_type_label(hand_type)
+                self.main_app.update_hand_details_data(hand_type)
+
             else:
                 self.main_app.update_hand_type_label("No hands detected to classify.")
 

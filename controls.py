@@ -19,8 +19,10 @@ class Controls:
                                           bg="#808080", relief="raised")
         self.grayscale_button.pack(side=tk.LEFT, padx=5)
 
-        self.detect_hands_button = tk.Button(self.controls_frame, text=" Detect Hands ", command=self.event_handlers.detect_hands,
-                                             relief="raised")
+        self.detect_hands_button = tk.Button(self.controls_frame, text=" Detect Hands ",
+                                             command=self.event_handlers.detect_hand_type, relief="raised")
+        # self.detect_hands_button = tk.Button(self.controls_frame, text=" Detect Hands ",
+        #                                      command=self.event_handlers.detect_hands, relief="raised")
         image_style_button(self.detect_hands_button, './images/hand.jpg')
         self.detect_hands_button.pack(side=tk.LEFT, padx=5)
 
@@ -28,8 +30,14 @@ class Controls:
         image_style_button(self.remove_bg_button, './images/eraser.png')
         self.remove_bg_button.pack(side=tk.LEFT, padx=5)
 
-        self.detect_hand_type_button = tk.Button(self.controls_frame, text="Detect Hand Type", command=self.event_handlers.detect_hand_type)
+        # self.detect_hand_type_button = tk.Button(self.controls_frame, text="Detect Hand Type", command=self.event_handlers.detect_hand_type)
+        # self.detect_hand_type_button.pack(side=tk.LEFT, padx=5)
+
+        self.detect_hand_type_button = tk.Button(self.controls_frame, text="Reset",
+                                                 command=self.event_handlers.reset)
+        image_style_button(self.detect_hand_type_button, './images/reset-icon.png')
         self.detect_hand_type_button.pack(side=tk.LEFT, padx=5)
+        #self.detect_hand_type_button.pack_forget()
 
         self.controls_frame.pack(pady=5)
         self.controls_frame.pack_forget()

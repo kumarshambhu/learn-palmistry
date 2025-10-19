@@ -2,7 +2,7 @@ import tkinter as tk
 from constants import big_text
 
 LABEL_FONT = ("Helvetica", 10)
-
+# Update scroll region when the frame changes\\\\
 class CanvasManager:
     def __init__(self, main_app):
         self.main_app = main_app
@@ -11,9 +11,6 @@ class CanvasManager:
         self.canvas3()
         self.canvases_container.pack(pady=10, fill=tk.BOTH, expand=True)
         self.canvases_container.pack_forget()
-
-    def on_configure(self, event):
-        self.canvas3.configure(scrollregion=self.canvas3.bbox("all"))
 
     def canvas2(self):
         # Canvas 2 for the image
@@ -29,31 +26,32 @@ class CanvasManager:
         self.canvas_frame2.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 5))
 
     def canvas3(self):
-        self.canvas_frame3 = tk.Frame(self.canvases_container)
-        self.canvas_frame3.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(5, 0))
+        # Create canvas and scrollbar
+        canvas = tk.Canvas(self.canvases_container, borderwidth=0)
+        scrollbar = tk.Scrollbar(self.canvases_container, orient="vertical", command=canvas.yview)
+        canvas.configure(yscrollcommand=scrollbar.set)
 
-        self.canvas3 = tk.Canvas(self.canvas_frame3)
-        self.canvas3.pack(side="left", fill="both", expand=True)
-
-        # Add a vertical scrollbar linked to the canvas
-        scrollbar = tk.Scrollbar(self.canvas_frame3, orient="vertical", command=self.canvas3.yview)
         scrollbar.pack(side="right", fill="y")
-        self.canvas3.configure(yscrollcommand=scrollbar.set)
+        canvas.pack(side="left", fill="both", expand=True)
 
-        # Create a frame inside the canvas to hold the content
-        self.content_frame = tk.Frame(self.canvas3, bg="white")
-        self.canvas3.create_window((0, 0), window=self.content_frame, anchor="nw")
+        # Create a frame inside the canvas
+        frame = tk.Frame(canvas)
+        canvas.create_window((0, 0), window=frame, anchor="nw")
 
-        self.v_scrollbar3 = tk.Scrollbar(self.canvas_frame3, orient=tk.VERTICAL, command=self.canvas3.yview)
-        self.h_scrollbar3 = tk.Scrollbar(self.canvas_frame3, orient=tk.HORIZONTAL, command=self.canvas3.xview)
-        self.canvas3.configure(yscrollcommand=self.v_scrollbar3.set, xscrollcommand=self.h_scrollbar3.set)
-        self.v_scrollbar3.pack(side=tk.RIGHT, fill=tk.Y)
-        self.h_scrollbar3.pack(side=tk.BOTTOM, fill=tk.X)
-        self.canvas3.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        # Big sentence (long paragraph)
+        big_sentence = (
+            "You can keep adding more text here to simulate a large block of content that needs to be scrolled "
+            "vertically. This is useful for displaying logs, long descriptions, or any text-heavy UI element."
+        )
 
-        self.content_frame.bind("<Configure>", self.on_configure)
-        self.result_label = tk.Label(self.content_frame, text=f"{big_text}",
-                                     bg="white", anchor="w", justify="left",
-                                     font=LABEL_FONT)
-        self.result_label.pack(
-            anchor="nw", padx=10, pady=5)
+        # Add the label
+        self.label3 = tk.Text(frame,  wrap="word", )
+        #self.label3.pack(fill="both", expand=True)
+        self.label3.pack(padx=10, pady=10)
+        self.label3.insert("1.0", big_sentence)
+
+        # Update scroll region
+        def on_frame_configure(event):
+            canvas.configure(scrollregion=canvas.bbox("all"))
+
+        frame.bind("<Configure>", on_frame_configure)
