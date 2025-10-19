@@ -23,7 +23,7 @@ class EventHandlers:
 
     def _show_controls(self):
         self.main_app.upload_button.pack_forget()
-        self.canvas_manager.canvases_container.pack(pady=10, fill=tk.BOTH, expand=True)
+        self.canvas_manager.canvases_container.pack(fill=tk.BOTH, expand=True)
         #self.main_app.reset_button.pack(pady=10)
         self.controls.controls_frame.pack(pady=5)
 
@@ -72,7 +72,7 @@ class EventHandlers:
 
             if self.state_manager.hand_landmarks:
                 hand_type = self.main_app.image_processor.detect_hand_type(self.state_manager.hand_landmarks)
-                self.main_app.update_hand_type_label(hand_type)
+                #self.main_app.update_hand_type_label(hand_type)
                 self.main_app.update_hand_details_data(hand_type)
 
             else:

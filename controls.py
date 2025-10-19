@@ -33,7 +33,7 @@ class Controls:
         # self.detect_hand_type_button = tk.Button(self.controls_frame, text="Detect Hand Type", command=self.event_handlers.detect_hand_type)
         # self.detect_hand_type_button.pack(side=tk.LEFT, padx=5)
 
-        self.detect_hand_type_button = tk.Button(self.controls_frame, text="Reset",
+        self.detect_hand_type_button = tk.Button(self.controls_frame, text="Reset",  fg="white", bg="#FF0000",
                                                  command=self.event_handlers.reset)
         image_style_button(self.detect_hand_type_button, './images/reset-icon.png')
         self.detect_hand_type_button.pack(side=tk.LEFT, padx=5)

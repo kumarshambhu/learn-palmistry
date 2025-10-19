@@ -24,18 +24,18 @@ class ImageUploader(tk.Tk):
 
     def _init_ui(self):
         self.upload_button = tk.Button(self, text="Upload Image", command=self.event_handlers.upload_image)
-        self.upload_button.pack(pady=20)
+        self.upload_button.pack()
 
         # self.reset_button = tk.Button(self, text="Reset", command=self.event_handlers.reset, fg="white", bg="#FF0000")
         # self.reset_button.pack(pady=10)
 
-        self.hand_type_label = tk.Label(self, text="", font=("Arial", 14, "bold"))
-        self.hand_type_label.pack(pady=5)
+        # self.hand_type_label = tk.Label(self, text="", font=("Arial", 14, "bold"))
+        # self.hand_type_label.pack(pady=5)
 
         #self.reset_button.pack_forget()
 
-    def update_hand_type_label(self, text):
-        self.hand_type_label.config(text=text)
+    # def update_hand_type_label(self, text):
+    #     self.hand_type_label.config(text=text)
     def update_hand_details_data(self, key):
         data = app_utils.read_file("details.json", key)
         self.canvas_manager.label3.delete("1.0", "end")

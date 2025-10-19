@@ -9,7 +9,7 @@ class CanvasManager:
         self.canvases_container = tk.Frame(self.main_app)
         self.canvas2()
         self.canvas3()
-        self.canvases_container.pack(pady=10, fill=tk.BOTH, expand=True)
+        self.canvases_container.pack(fill=tk.BOTH, expand=True)
         self.canvases_container.pack_forget()
 
     def canvas2(self):

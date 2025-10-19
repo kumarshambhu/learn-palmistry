@@ -10,12 +10,12 @@
     "personality": "Air hands suggest an intellectual, communicative, and analytical personality. These individuals are curious, sociable, and always full of ideas. They thrive on mental stimulation, enjoy discussing abstract concepts, and are natural communicators. They can sometimes be restless and prone to overthinking."
   },
   "Fire": {
-    "basic": "Water Hand (Emotional and Intuitive)",
+    "basic": "Fire Hand (Energetic and Passionate)",
     "features": "A rectangular palm with short fingers.",
     "personality": "Fire hands indicate a passionate, energetic, and confident individual. They are natural leaders, love taking risks, and are always on the go. With their charisma and drive, they are often the center of attention. They are enthusiastic and can be impulsive, but their energy is contagious."
   },
   "Water": {
-    "basic": "Fire Hand (Energetic and Passionate)",
+    "basic": "Water Hand (Emotional and Intuitive)",
     "features": "A rectangular palm with long fingers.",
     "personality": "Water hands are associated with an emotional, intuitive, and imaginative nature. People with these hands are often creative, compassionate, and highly sensitive to their environment and the feelings of others. They are driven by their feelings, are very perceptive, and often have a rich inner world."
   }
