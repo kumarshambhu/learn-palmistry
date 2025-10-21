@@ -91,3 +91,7 @@ class ImageProcessor:
             return "Fire"
         else:
             return "Could not determine hand type"
+
+    def predict_lines(self, image):
+        # Placeholder for line prediction logic
+        return "Prediction: Heart Line - Strong, Life Line - Long, Fate Line - Clear"

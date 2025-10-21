@@ -30,6 +30,12 @@ class Controls:
         image_style_button(self.remove_bg_button, './images/eraser.png')
         self.remove_bg_button.pack(side=tk.LEFT, padx=5)
 
+        self.draw_lines_button = tk.Button(self.controls_frame, text="Draw Lines", command=self.event_handlers.toggle_drawing_mode)
+        self.draw_lines_button.pack(side=tk.LEFT, padx=5)
+
+        self.predict_lines_button = tk.Button(self.controls_frame, text="Predict Lines", command=self.event_handlers.predict_lines)
+        self.predict_lines_button.pack(side=tk.LEFT, padx=5)
+
         # self.detect_hand_type_button = tk.Button(self.controls_frame, text="Detect Hand Type", command=self.event_handlers.detect_hand_type)
         # self.detect_hand_type_button.pack(side=tk.LEFT, padx=5)
 

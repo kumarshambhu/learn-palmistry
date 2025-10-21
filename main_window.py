@@ -48,3 +48,6 @@ class ImageUploader(tk.Tk):
             self.canvas_manager.label3.tag_add("bold_red", "2.0", "2.end")
             self.canvas_manager.label3.tag_config("bold_red", foreground="blue", font=("Arial", 12))
 
+    def update_prediction_text(self, text):
+        self.canvas_manager.label3.delete("1.0", "end")
+        self.canvas_manager.label3.insert("1.0", text)

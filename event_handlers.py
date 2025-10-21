@@ -1,5 +1,5 @@
 from tkinter import filedialog
-from PIL import Image, ImageTk
+from PIL import Image, ImageTk, ImageDraw
 
 import app_utils
 from constants import big_text
@@ -99,3 +99,29 @@ class EventHandlers:
 
             self.canvas_manager.canvas_image2 = self.canvas_manager.canvas2.create_image(0, 0, anchor=tk.NW, image=self.main_app.photo)
             self.canvas_manager.canvas2.config(scrollregion=self.canvas_manager.canvas2.bbox(tk.ALL))
+
+    def toggle_drawing_mode(self):
+        self.state_manager.is_drawing = not self.state_manager.is_drawing
+        if self.state_manager.is_drawing:
+            self.canvas_manager.canvas2.bind("<B1-Motion>", self.draw)
+            self.canvas_manager.canvas2.bind("<ButtonRelease-1>", self.stop_drawing)
+        else:
+            self.canvas_manager.canvas2.unbind("<B1-Motion>")
+            self.canvas_manager.canvas2.unbind("<ButtonRelease-1>")
+
+    def draw(self, event):
+        if self.state_manager.last_x and self.state_manager.last_y:
+            self.canvas_manager.canvas2.create_line(self.state_manager.last_x, self.state_manager.last_y, event.x, event.y, width=2, fill="red")
+            draw = ImageDraw.Draw(self.state_manager.processed_image)
+            draw.line([self.state_manager.last_x, self.state_manager.last_y, event.x, event.y], fill="red", width=2)
+        self.state_manager.last_x = event.x
+        self.state_manager.last_y = event.y
+
+    def stop_drawing(self, event):
+        self.state_manager.last_x = None
+        self.state_manager.last_y = None
+
+    def predict_lines(self):
+        if self.state_manager.processed_image:
+            prediction = self.main_app.image_processor.predict_lines(self.state_manager.processed_image)
+            self.main_app.update_prediction_text(prediction)
