@@ -10,6 +10,7 @@ class StateManager:
         self.is_drawing = False
         self.last_x = None
         self.last_y = None
+        self.lines_drawn = False
 
     def _reset_state(self):
         if self.original_image:

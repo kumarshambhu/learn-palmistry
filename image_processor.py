@@ -1,7 +1,8 @@
 import cv2
 import mediapipe as mp
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageDraw
+from scipy.special import comb
 
 class ImageProcessor:
     def __init__(self):
@@ -92,6 +93,54 @@ class ImageProcessor:
         else:
             return "Could not determine hand type"
 
-    def predict_lines(self, image):
-        # Placeholder for line prediction logic
-        return "Prediction: Heart Line - Strong, Life Line - Long, Fate Line - Clear"
+    def draw_palmistry_lines(self, pil_image, hand_landmarks):
+        if not hand_landmarks:
+            return pil_image
+
+        image = pil_image.copy()
+        draw = ImageDraw.Draw(image)
+        width, height = image.size
+
+        for landmarks in hand_landmarks:
+            # Heart Line
+            p1 = np.array([landmarks.landmark[self.mp_hands.HandLandmark.PINKY_MCP].x * width, landmarks.landmark[self.mp_hands.HandLandmark.PINKY_MCP].y * height])
+            p2 = np.array([landmarks.landmark[self.mp_hands.HandLandmark.INDEX_FINGER_MCP].x * width, landmarks.landmark[self.mp_hands.HandLandmark.INDEX_FINGER_MCP].y * height])
+            control = np.array([(p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2 + 30])
+            points = np.array([p1, control, p2])
+            x, y = self._bezier_curve(points, nTimes=20)
+            draw.line(list(zip(x, y)), fill="red", width=2)
+
+            # Head Line
+            p1 = np.array([landmarks.landmark[self.mp_hands.HandLandmark.THUMB_CMC].x * width, landmarks.landmark[self.mp_hands.HandLandmark.THUMB_CMC].y * height])
+            p2 = np.array([landmarks.landmark[self.mp_hands.HandLandmark.PINKY_MCP].x * width, landmarks.landmark[self.mp_hands.HandLandmark.PINKY_MCP].y * height])
+            control = np.array([(p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2 + 10])
+            points = np.array([p1, control, p2])
+            x, y = self._bezier_curve(points, nTimes=20)
+            draw.line(list(zip(x, y)), fill="blue", width=2)
+
+            # Life Line
+            p1 = np.array([landmarks.landmark[self.mp_hands.HandLandmark.THUMB_CMC].x * width, landmarks.landmark[self.mp_hands.HandLandmark.THUMB_CMC].y * height])
+            p2 = np.array([landmarks.landmark[self.mp_hands.HandLandmark.WRIST].x * width, landmarks.landmark[self.mp_hands.HandLandmark.WRIST].y * height])
+            control = np.array([p1[0] - 40, (p1[1] + p2[1]) / 2])
+            points = np.array([p1, control, p2])
+            x, y = self._bezier_curve(points, nTimes=20)
+            draw.line(list(zip(x, y)), fill="green", width=2)
+
+        return image
+
+    def _bernstein_poly(self, i, n, t):
+        return comb(n, i) * (t**(n-i)) * (1 - t)**i
+
+    def _bezier_curve(self, points, nTimes=1000):
+        nPoints = len(points)
+        xPoints = np.array([p[0] for p in points])
+        yPoints = np.array([p[1] for p in points])
+
+        t = np.linspace(0.0, 1.0, nTimes)
+
+        polynomial_array = np.array([self._bernstein_poly(i, nPoints-1, t) for i in range(0, nPoints)])
+
+        xvals = np.dot(xPoints, polynomial_array)
+        yvals = np.dot(yPoints, polynomial_array)
+
+        return xvals, yvals
