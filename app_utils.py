@@ -16,9 +16,9 @@ def java_like_switch(value):
 def read_file(filename, key):
     try:
         with open(filename, 'r') as file:
-            data = json.load(file)
+            file_data = json.load(file)
             #print(data.get(key, 'Name not found'))
-            return data.get(key, "")
+            return file_data.get(key, "")
     except FileNotFoundError:
         print("File not found.")
     except json.JSONDecodeError:

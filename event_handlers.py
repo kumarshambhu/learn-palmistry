@@ -1,8 +1,6 @@
 from tkinter import filedialog
 from PIL import Image, ImageTk
 
-import app_utils
-from constants import big_text
 import tkinter as tk
 
 class EventHandlers:
@@ -17,14 +15,13 @@ class EventHandlers:
         if file_path:
             self.state_manager.original_image = Image.open(file_path)
             self.state_manager.processed_image = self.state_manager.original_image.copy()
-            self.state_manager._reset_state()
+            self.state_manager.reset_image_state()
             self.update_image_display()
             self._show_controls()
 
     def _show_controls(self):
         self.main_app.upload_button.pack_forget()
         self.canvas_manager.canvases_container.pack(fill=tk.BOTH, expand=True)
-        #self.main_app.reset_button.pack(pady=10)
         self.controls.controls_frame.pack(pady=5)
 
     def reset(self):
@@ -33,7 +30,7 @@ class EventHandlers:
             self.canvas_manager.canvas_image2 = None
         if hasattr(self.main_app, 'hand_type_label'):
             self.main_app.hand_type_label.config(text="")
-        self.state_manager.__init__()
+        self.state_manager.reset()
         self._hide_controls()
 
     def _hide_controls(self):
