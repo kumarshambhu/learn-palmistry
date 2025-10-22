@@ -5,11 +5,12 @@ LABEL_FONT = ("Helvetica", 10)
 # Update scroll region when the frame changes\\\\
 class CanvasManager:
     def __init__(self, main_app):
+        self.label3 = None
         self.main_app = main_app
         self.canvases_container = tk.Frame(self.main_app)
         self.canvas2()
         self.canvas3()
-        self.canvases_container.pack(fill=tk.BOTH, expand=True)
+        self.canvases_container.pack(expand=True)
         self.canvases_container.pack_forget()
 
     def canvas2(self):
@@ -38,17 +39,10 @@ class CanvasManager:
         frame = tk.Frame(canvas)
         canvas.create_window((0, 0), window=frame, anchor="nw")
 
-        # Big sentence (long paragraph)
-        big_sentence = (
-            "You can keep adding more text here to simulate a large block of content that needs to be scrolled "
-            "vertically. This is useful for displaying logs, long descriptions, or any text-heavy UI element."
-        )
-
         # Add the label
         self.label3 = tk.Text(frame,  wrap="word", )
-        #self.label3.pack(fill="both", expand=True)
         self.label3.pack(padx=10, pady=10)
-        self.label3.insert("1.0", big_sentence)
+        self.label3.insert("1.0", big_text)
 
         # Update scroll region
         def on_frame_configure(event):
